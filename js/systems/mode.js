@@ -46,7 +46,7 @@ export let mode =
 
         deselectObject();
 
-        brush.visible = false;
+        brush.border.visible = false;
     },
 }
 

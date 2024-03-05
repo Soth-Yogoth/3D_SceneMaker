@@ -1,8 +1,5 @@
-import { createScene, scene, camera, renderer} from './content/components.js';
+import { scene, camera, renderer, mixers} from './content/components.js';
 import { onMouseScroll, onMouseUp, onMouseDown, onMouseMove, onMouseButtonHolding, keyboardEventListener } from './systems/control.js';
-import { mixers } from './content/models.js'; 
-
-//TO DO: Smoothing terrain;
 
 let container;
 let stats = new Stats();
@@ -18,8 +15,6 @@ function init()
     container = document.getElementById('container');
     container.appendChild(renderer.domElement);
     container.appendChild(stats.domElement);
-
-    createScene();
 
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('keydown', keyboardEventListener);

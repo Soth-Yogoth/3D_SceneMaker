@@ -1,6 +1,6 @@
-const N = 200;
+import { scene, sceneSize } from "./components.js";
 
-let terrain = createTerrain(N, N, 'resources/textures/grass-3.jpg');
+let terrain = createTerrain(sceneSize, sceneSize, 'resources/textures/grass-3.jpg');
 
 terrain.transform = function(x0, y0, radius, intensity)
 {
@@ -9,34 +9,88 @@ terrain.transform = function(x0, y0, radius, intensity)
 
     for (let x = Xmin + 1; x < Xmax; x++)
     {
-        if(x + N/2 <= 0 || x + N/2 >= N) continue;
+        if(x + sceneSize/2 <= 0 || x + sceneSize/2 >= sceneSize) continue;
 
-        let dist = Math.sqrt(Math.pow(x - x0, 2))
+        let dist = Math.abs(x - x0)
         let h = Math.sqrt(Math.pow(radius, 2) - Math.pow(dist, 2)) * intensity;
         
-        this.geometry.vertices[(x + N/2) * (N + 1) + (y0 + N/2)].z += h;
+        this.getVertex(x, y0).z += h;
 
         for(let y = y0 + 1; dist < radius - 1; y++)
         {
             dist = Math.sqrt(Math.pow(x - x0, 2) + Math.pow(y - y0, 2));
-
             h = Math.sqrt(Math.pow(radius, 2) - Math.pow(dist, 2)) * intensity;
 
-            if(y + N/2 < N)
+            if(y + sceneSize/2 < sceneSize)
             {
-                this.geometry.vertices[(x + N/2) * (N + 1) + (y + N/2)].z += h;
+                this.getVertex(x, y).z += h;
             }
-            if(2 * y0 - y + N/2 > 0) 
+            if(2 * y0 - y + sceneSize/2 > 0) 
             {
-                this.geometry.vertices[(x + N/2) * (N + 1) + (2 * y0 - y + N/2)].z += h;
+                this.getVertex(x, 2 * y0 - y).z += h;
             }
         }
     }
 }
 
-terrain.smooth = function(x0, y0, radius, intensity) 
+terrain.smooth = function(x0, y0, radius, a) 
 {
+    let Xmin = x0 - radius;
+    let Xmax = x0 + radius;
 
+    for (let x = Xmin + 1; x < Xmax; x++)
+    {
+        if(x + sceneSize/2 <= 0 || x + sceneSize/2 >= sceneSize) continue;
+
+        let dist = Math.sqrt(Math.pow(x - x0, 2))
+
+        let vertex = this.getVertex(x, y0);
+
+        if(vertex.z >= a)
+        {
+            vertex.z -= a;
+        }
+        else if(vertex.z <= -a)
+        {
+            vertex.z += a;
+        }
+        else vertex.z = 0;
+
+        for(let y = y0 + 1; dist < radius - 1; y++)
+        {
+            dist = Math.sqrt(Math.pow(x - x0, 2) + Math.pow(y - y0, 2));
+
+            if(y + sceneSize/2 < sceneSize)
+            {
+                let vertex = this.getVertex(x, y);
+
+                if(vertex.z >= a)
+                {
+                    vertex.z -= a;
+                }
+                else if(vertex.z <= -a)
+                {
+                    vertex.z += a;
+                }
+                else vertex.z = 0;
+            }
+            if(2 * y0 - y + sceneSize/2 > 0) 
+            {
+                let vertex = this.getVertex(x, 2 * y0 - y);
+
+                if(vertex.z >= a)
+                {
+                    vertex.z -= a;
+                }
+                else if(vertex.z <= -a)
+                {
+                    vertex.z += a;
+                }
+                else vertex.z = 0;
+
+            }
+        }
+    }
 };
 
 terrain.updateMesh = function()
@@ -45,14 +99,6 @@ terrain.updateMesh = function()
     this.geometry.computeVertexNormals(); 
     this.geometry.verticesNeedUpdate = true; 
     this.geometry.normalsNeedUpdate = true; 
-}
-
-terrain.getVertexHeight = function(x, y)
-{
-    x = Math.round(x);
-    y = Math.round(y);
-    
-    return this.geometry.vertices[(x + N/2) * (N + 1) + (y + N/2)].z;
 }
 
 function createTerrain(width, length, texturePath)
@@ -110,5 +156,20 @@ function createTerrain(width, length, texturePath)
     mesh.receiveShadow = true;
     return mesh;
 }
+
+terrain.getVertex = function(x,y)
+{
+    x = Math.round(x);
+    y = Math.round(y);
+
+    let index = (x + sceneSize/2) * (sceneSize + 1) + (y + sceneSize/2);
+    
+    if(index >= 0 && index < this.geometry.vertices.length)
+    {
+        return this.geometry.vertices[index];
+    }
+}
+
+scene.add(terrain);
 
 export default terrain;

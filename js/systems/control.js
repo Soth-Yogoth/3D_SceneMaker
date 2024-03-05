@@ -1,10 +1,8 @@
 import { mode } from './mode.js';
-import { scene, camera } from '../content/components.js';
-import { selectedModel, mixers } from '../content/models.js';
+import { scene, camera, sceneSize, mixers, targets} from '../content/components.js';
+import { selectedModel } from '../content/models.js';
 import terrain from '../content/terrain.js';
 import brush from '../content/brush.js';
-
-const N = 200;
 
 let mouse = new THREE.Vector3();
 
@@ -14,7 +12,6 @@ let mouseDelta = 0;
 let raycaster = new THREE.Raycaster();
 let intersectPoint = new THREE.Vector3(0, 0, 0);
 
-let targets = [];
 let selectedObject; 
 
 export function deselectObject()
@@ -145,6 +142,7 @@ let actions =
         scene.add(object.OBBox);
 
         targets.push(object.OBBox);
+        if(object.OBBox.mixer != null) mixers.push(object.OBBox.mixer);
     },
 
     selectObject()
@@ -167,7 +165,7 @@ let actions =
                 Math.round(intersectPoint.x), 
                 Math.round(intersectPoint.y), 
                 brush.radius, 
-                brush.intensity * timeDelta)
+                Math.abs(brush.intensity) * 10 * timeDelta)
         }
         else
         {
@@ -180,7 +178,7 @@ let actions =
         terrain.updateMesh();
 
         targets.forEach(target => {
-            let height = terrain.getVertexHeight(target.position.x, target.position.y);
+            let height = terrain.getVertex(target.position.x, target.position.y).z;
 
             if(target.fly)
             {
@@ -272,7 +270,7 @@ let actions =
         a += mouseDelta;
         mouseDelta = 0;
 
-        camera.position.set(N * Math.cos(a), N * Math.sin(a), N/2);
+        camera.position.set(sceneSize * Math.cos(a), sceneSize * Math.sin(a), sceneSize/2);
         camera.up.set(-camera.position.x, -camera.position.y, 0);
         camera.lookAt(0, 0, 0); 
     },

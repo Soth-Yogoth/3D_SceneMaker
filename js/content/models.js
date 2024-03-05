@@ -2,7 +2,6 @@ import { modelsFolder } from '../systems/gui.js';
 import { mode } from '../systems/mode.js';
 
 export let selectedModel;
-export let mixers = [];
 
 export function deselectModel()
 {
@@ -45,8 +44,6 @@ class Model
             mixer = new THREE.AnimationMixer(mesh);
             let action = mixer.clipAction(this.clip);
             action.play();
-    
-            mixers.push(mixer);
         }
 
         return { 

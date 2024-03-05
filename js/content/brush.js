@@ -1,6 +1,5 @@
 import { brushFolder } from "../systems/gui.js";
-
-const N = 200;
+import { scene, sceneSize } from "./components.js";
 
 let brush =
 {
@@ -17,7 +16,7 @@ let brush =
 
     set radius(value)
     {
-        if ((value > 1 && value < N/5))
+        if ((value > 1 && value < sceneSize/5))
         {
             this.borderRadius = value;
             this.border.scale.set(this.radius, this.radius, 1);
@@ -42,10 +41,10 @@ let brush =
             pos.copy(this.border.geometry.vertices[i]);
             pos.applyMatrix4(this.border.matrixWorld);
 
-            let x = Math.round(pos.x + N/2);
-            let y = Math.round(pos.y + N/2);
+            let x = Math.round(pos.x + sceneSize/2);
+            let y = Math.round(pos.y + sceneSize/2);
 
-            let index = x * (N + 1) + y + 1
+            let index = x * (sceneSize + 1) + y + 1
             let z = terrain.geometry.vertices[index].z;
 
             this.border.geometry.vertices[i].z = z;
@@ -75,6 +74,9 @@ function createCursor()
     cursorGeometry.rotateX( Math.PI / 2 );
     return new THREE.Mesh( cursorGeometry, new THREE.MeshNormalMaterial() );
 }
+
+scene.add(brush.border);
+scene.add(brush.cursor);
 
 brushFolder.add(brush, 'intensity', -1, 1, 0.1).name('Сила нажатия');
 brushFolder.add(brush, 'smooth').name('Выравнивание');
