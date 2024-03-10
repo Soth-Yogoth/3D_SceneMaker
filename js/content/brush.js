@@ -23,6 +23,11 @@ let brush =
         }
     },
 
+    get position()
+    {
+        return this.cursor.position;
+    },
+
     moveTo(intersection, terrain)
     {
         let point = intersection.point;
@@ -30,7 +35,6 @@ let brush =
         this.cursor.position.set(0, 0, 0);
         this.cursor.lookAt(intersection.face.normal);
         this.cursor.position.copy(point);
-        this.cursor.position.z += 5;
 
         this.border.position.copy(point);
         this.border.position.z = 0;
@@ -41,13 +45,8 @@ let brush =
             pos.copy(this.border.geometry.vertices[i]);
             pos.applyMatrix4(this.border.matrixWorld);
 
-            let x = Math.round(pos.x + sceneSize/2);
-            let y = Math.round(pos.y + sceneSize/2);
-
-            let index = x * (sceneSize + 1) + y + 1
-            let z = terrain.geometry.vertices[index].z;
-
-            this.border.geometry.vertices[i].z = z;
+            let vertex = terrain.getVertex(pos.x, pos.y);
+            this.border.geometry.vertices[i].z = vertex.z;
         };
 
         this.border.geometry.computeFaceNormals();
@@ -72,7 +71,11 @@ function createCursor()
 {
     let cursorGeometry = new THREE.ConeGeometry(2, 10, 3);
     cursorGeometry.rotateX( Math.PI / 2 );
-    return new THREE.Mesh( cursorGeometry, new THREE.MeshNormalMaterial() );
+    cursorGeometry.translate(0, 0, -5);
+
+    let material = new THREE.MeshNormalMaterial();
+
+    return new THREE.Mesh( cursorGeometry, material);
 }
 
 scene.add(brush.border);

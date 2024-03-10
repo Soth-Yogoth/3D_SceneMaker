@@ -1,5 +1,6 @@
 import { modelsFolder } from '../systems/gui.js';
 import { mode } from '../systems/mode.js';
+import { scene, targets, mixers } from './components.js';
 
 export let selectedModel;
 
@@ -31,26 +32,37 @@ class Model
         mode.setAddObjectMode();
     }
 
-    getCopy()
+    placeCopy(pos)
     {
-        let mesh = this.mesh.clone()
-        let OBBox = createOBBox(mesh);
-        let mixer = null;
+        let mesh = this.mesh.clone();
+
+        mesh.position.x += pos.x;
+        mesh.position.y += pos.y;
+        mesh.position.z += pos.z;
+
+        let object = createOBBox(mesh);
+        object.mesh = mesh;
+        object.mixer = null;
+
+        object.fly = object.mesh.position.z > 0
+        object.size = 1;
+
+        console.log(object.fly);
+
+        scene.add(object.mesh);
+        scene.add(object);
+        targets.push(object);
 
         if(this.clip != null)
         {
-            mesh.rotateZ = mesh.rotateY;
+            object.mesh.rotateZ = object.mesh.rotateY;
 
-            mixer = new THREE.AnimationMixer(mesh);
-            let action = mixer.clipAction(this.clip);
+            object.mixer = new THREE.AnimationMixer(object.mesh);
+            let action = object.mixer.clipAction(this.clip);
             action.play();
         }
 
-        return { 
-            mesh: mesh, 
-            OBBox: OBBox,
-            mixer: mixer,
-        };
+        if(object.mixer != null) mixers.push(object.mixer);
     }
 }
 
@@ -66,13 +78,12 @@ function createStaticModel(path, objName, mtlName, name)
                 child.receiveShadow = true;
             }
         });
-
         new Model(obj, name, null);
     }  
 
     let onError = (xhr) => console.log(xhr);
 
-    function mtlLoad(materials)
+    let mtlLoad = (materials) =>
     {
         materials.preload;
         let objLoader = new THREE.OBJLoader();

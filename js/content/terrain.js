@@ -11,7 +11,7 @@ terrain.transform = function(x0, y0, radius, intensity)
     {
         if(x + sceneSize/2 <= 0 || x + sceneSize/2 >= sceneSize) continue;
 
-        let dist = Math.abs(x - x0)
+        let dist = Math.abs(x - x0);
         let h = Math.sqrt(Math.pow(radius, 2) - Math.pow(dist, 2)) * intensity;
         
         this.getVertex(x, y0).z += h;
@@ -33,7 +33,7 @@ terrain.transform = function(x0, y0, radius, intensity)
     }
 }
 
-terrain.smooth = function(x0, y0, radius, a) 
+terrain.smooth = function(x0, y0, radius, intensity) 
 {
     let Xmin = x0 - radius;
     let Xmax = x0 + radius;
@@ -42,17 +42,17 @@ terrain.smooth = function(x0, y0, radius, a)
     {
         if(x + sceneSize/2 <= 0 || x + sceneSize/2 >= sceneSize) continue;
 
-        let dist = Math.sqrt(Math.pow(x - x0, 2))
+        let dist = Math.abs(x - x0);
 
         let vertex = this.getVertex(x, y0);
 
-        if(vertex.z >= a)
+        if(vertex.z >= intensity)
         {
-            vertex.z -= a;
+            vertex.z -= intensity;
         }
-        else if(vertex.z <= -a)
+        else if(vertex.z <= -intensity)
         {
-            vertex.z += a;
+            vertex.z += intensity;
         }
         else vertex.z = 0;
 
@@ -64,13 +64,13 @@ terrain.smooth = function(x0, y0, radius, a)
             {
                 let vertex = this.getVertex(x, y);
 
-                if(vertex.z >= a)
+                if(vertex.z >= intensity)
                 {
-                    vertex.z -= a;
+                    vertex.z -= intensity;
                 }
-                else if(vertex.z <= -a)
+                else if(vertex.z <= -intensity)
                 {
-                    vertex.z += a;
+                    vertex.z += intensity;
                 }
                 else vertex.z = 0;
             }
@@ -78,16 +78,15 @@ terrain.smooth = function(x0, y0, radius, a)
             {
                 let vertex = this.getVertex(x, 2 * y0 - y);
 
-                if(vertex.z >= a)
+                if(vertex.z >= intensity)
                 {
-                    vertex.z -= a;
+                    vertex.z -= intensity;
                 }
-                else if(vertex.z <= -a)
+                else if(vertex.z <= -intensity)
                 {
-                    vertex.z += a;
+                    vertex.z += intensity;
                 }
                 else vertex.z = 0;
-
             }
         }
     }

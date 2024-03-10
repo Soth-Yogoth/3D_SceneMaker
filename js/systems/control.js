@@ -4,13 +4,11 @@ import { selectedModel } from '../content/models.js';
 import terrain from '../content/terrain.js';
 import brush from '../content/brush.js';
 
-let mouse = new THREE.Vector3();
+let raycaster = new THREE.Raycaster();
+let mouse = new THREE.Vector3(0, 0, 0);
 
 let a = -Math.PI/2;
 let mouseDelta = 0;
-
-let raycaster = new THREE.Raycaster();
-let intersectPoint = new THREE.Vector3(0, 0, 0);
 
 let selectedObject; 
 
@@ -34,7 +32,6 @@ export function onMouseMove(e)
 
     if (intersection.length > 0) 
     {
-        intersectPoint = intersection[0].point;
         brush.moveTo(intersection[0], terrain);
     }   
 }
@@ -50,21 +47,23 @@ export function onMouseDown(e)
         switch(mode.selected)
         {
             case 0:
-            {
                 onMouseButtonHolding = actions.editTerrain;
                 break;
-            }
             case 1:
-            {
-                actions.selectObject();
-                onMouseButtonHolding = actions.moveObject;
+                deselectObject();
+                let intersection = raycaster.intersectObjects(targets); 
+        
+                if(intersection.length > 0)
+                {
+                    selectedObject = intersection[0].object;
+                    selectedObject.material.opacity = 0.1;
+
+                    onMouseButtonHolding = actions.moveObject;
+                }
                 break;
-            }
             case 2:
-            {
-                actions.addObject(selectedModel);
+                selectedModel.placeCopy(brush.position);
                 break;
-            }
         }
     }
 }
@@ -100,20 +99,14 @@ export function keyboardEventListener(e)
     switch(e.key)
     {
         case "Q": case "q": case "Й": case "й":
-        {
             actions.rotateObject(-1);
             break;
-        }
         case "E": case "e": case "У": case "у":
-        {
             actions.rotateObject(1);
             break;
-        }
         case "Delete":
-        {
             actions.delete();
             break;
-        }
         default: 
             break;
     }
@@ -121,57 +114,21 @@ export function keyboardEventListener(e)
 
 let actions =
 {
-    addObject(model)
-    {
-        let object = model.getCopy();
-
-        object.OBBox.fly = object.mesh.position.z > 0
-        object.OBBox.mixer = object.mixer;
-        object.OBBox.mesh = object.mesh;
-        object.OBBox.size = 1;
-
-        object.mesh.position.x += intersectPoint.x;
-        object.mesh.position.y += intersectPoint.y;
-        object.mesh.position.z += intersectPoint.z;
-
-        object.OBBox.position.x += intersectPoint.x;
-        object.OBBox.position.y += intersectPoint.y;
-        object.OBBox.position.z += intersectPoint.z;
-
-        scene.add(object.mesh);
-        scene.add(object.OBBox);
-
-        targets.push(object.OBBox);
-        if(object.OBBox.mixer != null) mixers.push(object.OBBox.mixer);
-    },
-
-    selectObject()
-    {
-        deselectObject();
-        let intersection = raycaster.intersectObjects(targets); 
-
-        if(intersection.length > 0)
-        {
-            selectedObject = intersection[0].object;
-            selectedObject.material.opacity = 0.1;
-        }
-    },
-
     editTerrain(timeDelta)
     {
         if(brush.smooth)
         {
             terrain.smooth(
-                Math.round(intersectPoint.x), 
-                Math.round(intersectPoint.y), 
+                Math.round(brush.position.x), 
+                Math.round(brush.position.y), 
                 brush.radius, 
                 Math.abs(brush.intensity) * 10 * timeDelta)
         }
         else
         {
             terrain.transform(
-                Math.round(intersectPoint.x), 
-                Math.round(intersectPoint.y), 
+                Math.round(brush.position.x), 
+                Math.round(brush.position.y), 
                 brush.radius, 
                 brush.intensity * timeDelta);
         }
@@ -196,9 +153,9 @@ let actions =
     moveObject()
     {
         if(selectedObject == null) return;
-        
-        selectedObject.mesh.position.copy(intersectPoint);
-        selectedObject.position.copy(intersectPoint);
+
+        selectedObject.mesh.position.copy(brush.position);
+        selectedObject.position.copy(brush.position);
 
         if(selectedObject.fly)
         {

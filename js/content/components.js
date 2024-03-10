@@ -30,6 +30,25 @@ function createScene()
     
     scene.add(light);
     scene.add(ambientLight);
+    scene.add(createSky("resources/Textures/sky.jpg"))
+}
+
+function createSky(texPath)
+{
+    let geometry = new THREE.SphereGeometry(sceneSize * 2, 32, 32);
+    
+    let loader = new THREE.TextureLoader();
+    let texture = loader.load(texPath);
+    texture.minFilter = THREE.NearestFilter;
+    
+    let material = new THREE.MeshBasicMaterial({
+        map: texture,
+        side: THREE.DoubleSide
+    });
+    
+    let sphere = new THREE.Mesh(geometry, material);
+    sphere.rotateX(Math.PI/2);
+    return sphere;
 }
 
 createScene();
